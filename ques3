@@ -1,0 +1,61 @@
+# ---------------------------------------
+# BACKEND CODE (Node.js + Express)
+# ---------------------------------------
+# File: server.js
+const express = require("express");
+const cors = require("cors");
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.send("Backend running successfully through AWS Load Balancer!");
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+# ---------------------------------------
+# FRONTEND CODE (React)
+# ---------------------------------------
+# Create using: npx create-react-app frontend
+# File: src/App.js
+import React from "react";
+
+function App() {
+  return (
+    <div style={{ textAlign: "center", marginTop: "50px" }}>
+      <h1>React Frontend Hosted on AWS EC2</h1>
+      <h2>Backend Connected via AWS Load Balancer</h2>
+      <p>✅ Deployment Successful!</p>
+    </div>
+  );
+}
+
+export default App;
+
+# ---------------------------------------
+# FRONTEND Dockerfile (optional)
+# ---------------------------------------
+FROM node:18-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+
+# ---------------------------------------
+# BACKEND Dockerfile (optional)
+# ---------------------------------------
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 5000
+CMD ["node", "server.js"]
